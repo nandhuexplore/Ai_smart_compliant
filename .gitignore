@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+venv/
+env/
+ENV/
+
+# System & OS
+.DS_Store
+Thumbs.db
+
+# IDE & Antigravity artifacts
+.system_generated/
+scratch/
+*.log
+
+# Other workspaces / archives
+food-waste-assistant*
