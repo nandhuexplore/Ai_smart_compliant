@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Smart Complaint Resolver — Civic Grievance Triage System</title>
+  <meta name="description" content="English-only community complaint analysis system powered by machine learning for category prediction, urgency triage, and civic department routing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e293b;
+      --accent: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      font-size: 1.75rem;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1080px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .input-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .presets-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .chip {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    .textarea-wrapper {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 0.9rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      background: #ffffff;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: #ffffff;
+      border: none;
+      padding: 0.85rem 1.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Results Section */
+    .results-container {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .metric-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .metric-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    .badge-critical {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .badge-high {
+      background: #ffedd5;
+      color: #c2410c;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .badge-medium {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .badge-low {
+      background: #dcfce7;
+      color: #166534;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .cards-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 768px) {
+      .cards-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .detail-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .detail-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dept-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary-light);
+      padding: 0.85rem 1rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 0.75rem;
+    }
+
+    .action-text {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .summary-box {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      padding: 1rem;
+      border-radius: 6px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #14532d;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🏛️</div>
+      <div>
+        <div class="brand-title">AI Smart Complaint Resolver</div>
+        <div class="brand-subtitle">Community Grievance Classification & Civic Routing</div>
+      </div>
+    </div>
+    <div class="header-links">
+      <a href="/AI_Smart_Complaint_Resolver_Project_Report.pdf" target="_blank" class="btn-outline">
+        📄 View PDF Report
+      </a>
+      <a href="https://github.com/nandhuexplore/Ai_smart_compliant" target="_blank" class="btn-outline">
+        🐙 GitHub Repo
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="hero-badge">⚡ Live Machine Learning Inference</span>
+      <h1>Automated Community Complaint Resolver</h1>
+      <p>Submit any civic complaint in English. The system predicts the issue category, assigns urgency levels, routes to the municipal authority, and creates a dispatch summary.</p>
+    </section>
+
+    <div class="input-card">
+      <span class="presets-label">💡 Try Quick Real-World Scenarios:</span>
+      <div class="preset-chips">
+        <button type="button" class="chip" data-text="High-voltage 11kV electrical transformer exploded and live sparking wires whipped onto wet road near crowded bus stop!">⚡ Live Wire Hazard</button>
+        <button type="button" class="chip" data-text="Main potable water pipeline fractured on 8th Street, clean drinking water gushing onto road.">🚰 Water Pipeline Burst</button>
+        <button type="button" class="chip" data-text="Huge heap of rotten municipal waste accumulating at street corner for a week, terrible stench and stray dogs.">🗑️ Rotten Garbage Pile</button>
+        <button type="button" class="chip" data-text="Deep dangerous pothole on the middle of Main Arterial Road, several bikes have crashed and riders injured.">🕳️ Highway Pothole</button>
+        <button type="button" class="chip" data-text="Severe flash flood submerged ground floor houses completely, elderly people stranded on roofs, immediate rescue needed!">🌊 Flash Flood Crisis</button>
+        <button type="button" class="chip" data-text="Commercial electroplating workshop dumping untreated acidic runoff directly into open public stormwater canal.">🏭 Industrial Acid Runoff</button>
+      </div>
+
+      <div class="textarea-wrapper">
+        <textarea id="complaintInput" placeholder="Describe the civic issue in English (e.g. 'A water pipe burst on Main Street, flooding the footpath...')."></textarea>
+      </div>
+
+      <button id="analyzeBtn" class="btn-submit">
+        <span id="btnText">🔍 Analyze Complaint</span>
+      </button>
+    </div>
+
+    <!-- Results Section -->
+    <section id="resultsSection" class="results-container">
+      <div class="results-title">
+        <span>📊 Analysis & Dispatch Directive</span>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Predicted Category</div>
+          <div class="metric-value" id="catValue">Road</div>
+          <div class="metric-sub" id="catConf">92% model confidence</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Operational Urgency</div>
+          <div class="metric-value" id="urgValue">
+            <span class="badge-high">⚠️ HIGH</span>
+          </div>
+          <div class="metric-sub" id="urgConf">88% urgency score</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Department Code</div>
+          <div class="metric-value" style="font-family: monospace; font-size: 1.15rem;" id="codeValue">CIVIC-ROD-105</div>
+          <div class="metric-sub">Standard Municipal Routing Tag</div>
+        </div>
+      </div>
+
+      <div class="cards-row">
+        <div class="detail-card">
+          <h3>🏢 Recommended Civic Department</h3>
+          <div class="dept-box" id="deptValue">Roads, Bridges & Transportation Authority</div>
+          <div class="action-text">
+            <strong>Standard Operating Action:</strong>
+            <span id="actionValue">Send road repair crew for patching, barricading, or resurfacing.</span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <h3>📝 Short AI-Generated Summary</h3>
+          <div class="summary-box" id="summaryValue">
+            Loading dispatch summary...
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>AI Smart Complaint Resolver &bull; Developed by <strong>nandhuexplore</strong> &bull; English Civic Grievance Triage Pipeline</p>
+  </footer>
+
+  <script>
+    const complaintInput = document.getElementById('complaintInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const btnText = document.getElementById('btnText');
+    const resultsSection = document.getElementById('resultsSection');
+
+    // Preset chip clicks
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        complaintInput.value = chip.getAttribute('data-text');
+        complaintInput.focus();
+      });
+    });
+
+    function getUrgencyBadge(urgency) {
+      const u = (urgency || '').toLowerCase();
+      if (u === 'critical') return '<span class="badge-critical">🚨 CRITICAL</span>';
+      if (u === 'high') return '<span class="badge-high">⚠️ HIGH</span>';
+      if (u === 'medium') return '<span class="badge-medium">⚡ MEDIUM</span>';
+      return '<span class="badge-low">🟢 LOW</span>';
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
+      const text = complaintInput.value.trim();
+      if (!text) {
+        alert('Please enter a complaint description first.');
+        complaintInput.focus();
+        return;
+      }
+
+      // Show loading state
+      btnText.innerHTML = '<span class="spinner"></span> Analyzing with AI...';
+      analyzeBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+
+        if (!response.ok) {
+          throw new Error('API server returned error: ' + response.statusText);
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        // Populate results
+        document.getElementById('catValue').textContent = data.category;
+        document.getElementById('catConf').textContent = Math.round(data.category_confidence * 100) + '% model confidence';
+        
+        document.getElementById('urgValue').innerHTML = getUrgencyBadge(data.urgency);
+        document.getElementById('urgConf').textContent = Math.round(data.urgency_confidence * 100) + '% urgency score';
+
+        document.getElementById('codeValue').textContent = data.contact_code || 'CIVIC-GEN-000';
+        document.getElementById('deptValue').textContent = data.department;
+        document.getElementById('actionValue').textContent = data.recommended_action;
+        document.getElementById('summaryValue').textContent = data.summary;
+
+        // Display results
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        console.error(err);
+        alert('Failed to analyze complaint: ' + err.message);
+      } finally {
+        btnText.innerHTML = '🔍 Analyze Complaint';
+        analyzeBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
