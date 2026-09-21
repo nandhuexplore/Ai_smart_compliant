@@ -88,3 +88,8 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"error": f"Internal server error: {str(err)}"}).encode("utf-8"))
+
+
+# Aliases for Vercel Python runtime discovery
+app = handler
+application = handler

@@ -57,6 +57,6 @@ This will:
 
 ### 3. Launch the Streamlit Web Application
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 Open the provided browser URL (default `http://localhost:8501`) to input complaints and view the real-time AI predictions!
